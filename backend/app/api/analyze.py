@@ -6,9 +6,10 @@ Orchestrates the constraint solver and Claude AI intelligence layers.
 from __future__ import annotations
 
 import logging
+import re
 from datetime import datetime, timezone
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.jurisdictions.registry import get_jurisdiction
 from app.models import (
@@ -123,9 +124,39 @@ def _empty_scenarios() -> list[Scenario]:
 
 @router.post("/analyze", response_model=AnalysisResponse)
 async def analyze_parcel(request: AnalysisRequest):
-    module = get_jurisdiction(request.jurisdiction.value)
+    # 1. Validate & look up jurisdiction
+    try:
+        module = get_jurisdiction(request.jurisdiction.value)
+    except KeyError:
+        raise HTTPException(
+            status_code=422,
+            detail=f"Unknown jurisdiction: {request.jurisdiction.value}",
+        )
 
-    # Build solver input
+    # 2. Tier 1 requires zoning district (until GIS auto-resolve in Phase 4)
+    if module.tier == 1 and not request.zoning_district:
+        gis_hint = (
+            "Check your zoning at charleston-sc.gov/GIS"
+            if request.jurisdiction.value == "charleston"
+            else "Check your zoning at the municipal GIS portal"
+        )
+        raise HTTPException(
+            status_code=422,
+            detail=(
+                f"Zoning district is required for {module.name} (Tier 1) analysis. "
+                f"{gis_hint}. Common districts: SR-1, SR-2, MU-1, MU-2, GB, UC-OD."
+            ),
+        )
+
+    logger.info(
+        "Analyzing %s in %s (tier %d, zoning=%s)",
+        request.address,
+        module.name,
+        module.tier,
+        request.zoning_district or "none",
+    )
+
+    # 3. Build solver input
     solver_input = SolverInput(
         jurisdiction=request.jurisdiction.value,
         zoning_district=request.zoning_district or "",
@@ -136,11 +167,32 @@ async def analyze_parcel(request: AnalysisRequest):
         historic_overlay=request.historic_overlay,
     )
 
-    # Run constraint solver
-    solver_output = solve(solver_input)
+    # 4. Run constraint solver
+    try:
+        solver_output = solve(solver_input)
+    except Exception as exc:
+        logger.error("Solver failed for %s: %s", request.address, exc)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Constraint solver error: {exc}",
+        )
 
-    # Run Claude AI analysis
-    ai_result = await generate_analysis(solver_output, module, request)
+    # 5-6. Build Claude prompt and call AI service
+    try:
+        ai_result = await generate_analysis(solver_output, module, request)
+    except Exception as exc:
+        logger.error("Claude API failed for %s: %s", request.address, exc)
+        raise HTTPException(
+            status_code=502,
+            detail=(
+                "AI analysis service is temporarily unavailable. "
+                "Please try again in a moment."
+            ),
+        )
+
+    # Check if AI returned a fallback error
+    if ai_result.error:
+        logger.warning("AI returned fallback for %s: %s", request.address, ai_result.error)
 
     # Build envelope from solver or AI
     if solver_output.solver_mode == "full" and solver_output.scenarios:
@@ -221,6 +273,7 @@ async def analyze_parcel(request: AnalysisRequest):
         ),
         confidence_tier=confidence_tier,
         confidence_label=confidence_label,
+        executive_summary=ai_result.executive_summary or None,
         disclaimer=disclaimer,
     )
 
@@ -232,8 +285,10 @@ def _safe_float(val) -> float | None:
     if isinstance(val, (int, float)):
         return float(val)
     if isinstance(val, str):
-        # Extract first number from string like "45 ft (unverified)"
-        import re
-        m = re.search(r"[\d.]+", val)
-        return float(m.group()) if m else None
+        m = re.search(r"\d+\.?\d*", val)
+        if m:
+            try:
+                return float(m.group())
+            except ValueError:
+                return None
     return None

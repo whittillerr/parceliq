@@ -28,6 +28,11 @@ export type RiskLevel = "Low" | "Moderate" | "High";
 export interface AnalysisRequest {
   jurisdiction: Jurisdiction;
   address: string;
+  zoning_district?: string;
+  height_district?: string;
+  on_peninsula?: boolean;
+  flood_zone?: string;
+  historic_overlay?: string;
   lot_size_sf?: number;
   use_types?: UseType[];
   approximate_scale?: string;
@@ -136,5 +141,6 @@ export interface AnalysisResponse {
   metadata: AnalysisMetadata;
   confidence_tier: number; // 1, 2, or 3
   confidence_label: string;
+  executive_summary?: string;
   disclaimer?: string;
 }

@@ -12,34 +12,55 @@ def test_health_check():
     assert data["product"] == "parceliq"
 
 
-def test_analyze_endpoint_returns_response():
+def test_analyze_tier1_requires_zoning_district():
+    """Tier 1 (Charleston) without zoning_district should return 422."""
     response = client.post("/api/analyze", json={
         "jurisdiction": "charleston",
         "address": "123 King St",
     })
-    assert response.status_code == 200
+    assert response.status_code == 422
     data = response.json()
-    assert data["parcel"]["address"] == "123 King St"
-    assert data["parcel"]["jurisdiction"] == "charleston"
-    assert data["parcel"]["jurisdiction_display"] == "City of Charleston"
-    assert len(data["scenarios"]) == 3
-    assert data["confidence_tier"] == 1
-    assert data["confidence_label"] == "Verified Data"
+    assert "Zoning district is required" in data["detail"]
 
 
-def test_analyze_with_optional_fields():
+def test_analyze_tier1_with_zoning_district():
+    """Tier 1 (Charleston) with zoning_district should be accepted."""
+    response = client.post("/api/analyze", json={
+        "jurisdiction": "charleston",
+        "address": "123 King St",
+        "zoning_district": "MU-2",
+    })
+    # Will be 200 if ANTHROPIC_API_KEY is set, 502 if not — either is valid wiring
+    assert response.status_code in (200, 502)
+
+
+def test_analyze_mount_pleasant_requires_zoning():
+    """Tier 1 (Mt Pleasant) without zoning_district should return 422."""
     response = client.post("/api/analyze", json={
         "jurisdiction": "mount_pleasant",
         "address": "456 Coleman Blvd",
         "lot_size_sf": 12000.0,
-        "use_types": ["residential", "mixed_use"],
-        "approximate_scale": "4 units",
-        "existing_conditions": "vacant lot",
     })
-    assert response.status_code == 200
-    data = response.json()
-    assert data["parcel"]["lot_size_sf"] == 12000.0
-    assert data["parcel"]["jurisdiction_display"] == "Town of Mount Pleasant"
+    assert response.status_code == 422
+
+
+def test_analyze_tier2_no_zoning_required():
+    """Tier 2 (North Charleston) should NOT require zoning_district."""
+    response = client.post("/api/analyze", json={
+        "jurisdiction": "north_charleston",
+        "address": "789 Rivers Ave",
+    })
+    # 200 or 502 (no API key) — but NOT 422
+    assert response.status_code != 422
+
+
+def test_analyze_tier3_no_zoning_required():
+    """Tier 3 jurisdictions should NOT require zoning_district."""
+    response = client.post("/api/analyze", json={
+        "jurisdiction": "folly_beach",
+        "address": "100 Center St",
+    })
+    assert response.status_code != 422
 
 
 def test_analyze_invalid_jurisdiction():

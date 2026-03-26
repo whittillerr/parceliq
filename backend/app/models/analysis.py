@@ -162,4 +162,5 @@ class AnalysisResponse(BaseModel):
     metadata: AnalysisMetadata
     confidence_tier: int
     confidence_label: str
+    executive_summary: Optional[str] = None
     disclaimer: Optional[str] = None
