@@ -1,0 +1,58 @@
+{
+  "source": "§ 156.318, Town of Mount Pleasant Zoning Code",
+  "effective_date": "May 1, 2025 (January 2025 code rewrite)",
+  "uc_od_base": {
+    "far": 1.5,
+    "far_excludes": "parking structures",
+    "far_not_applicable_to": "detached single-family",
+    "density_single_use_residential": 16,
+    "density_mixed_use": 20,
+    "mixed_use_qualification": "Min 33% nonresidential floor area",
+    "ground_floor_retail_frontage": "60% min on boulevard/frontage (commercial)",
+    "min_setback_residential": 5,
+    "min_open_space_pct": 8,
+    "max_building_footprint_sf": 50000,
+    "min_building_frontage_pct": 70,
+    "min_building_frontage_applies": "properties with >100 ft boulevard frontage"
+  },
+  "parking": {
+    "sf_duplex_th": { "spaces_per": 2, "per": "unit" },
+    "multi_family": { "spaces_per_range": [1.5, 2.0], "per": "unit" },
+    "commercial": "ULI shared parking or §156.170 minus 20%"
+  },
+  "sub_districts": {
+    "UC-CBS": {
+      "name": "Coleman-Ben Sawyer Boulevard",
+      "default_max_height_ft": 45,
+      "default_max_floors": 3,
+      "exceptions": {
+        "D1_Moultrie_Plaza": { "frontage_ft": 45, "interior_ft": 55 },
+        "E3": { "frontage_ft": 45, "interior_ft": 55 }
+      },
+      "adjacent_residential_within_50ft": { "max_ft": 40, "max_stories": 3 },
+      "build_to_ft": [20, 30]
+    },
+    "UC-JDB": {
+      "name": "Johnnie Dodds Boulevard",
+      "neighborhood_commercial_office": { "max_ft": 55 },
+      "hospitality_econ_dev": { "max_ft": 80 },
+      "health_wellness": { "max_ft": 80 },
+      "adjacent_residential_within_50ft": { "max_ft": 40 },
+      "build_to_ft": [20, 30],
+      "sidewalk_ft": 8
+    }
+  },
+  "residential_base": {
+    "all_districts_max_height_ft": 35,
+    "all_districts_max_stories": 2.5,
+    "special_flood_hazard_max_ft": 40,
+    "max_impervious_np_od": 0.40,
+    "building_coverage_range": [0.30, 0.50],
+    "accessory_max_sf": { "R-1": 850, "R-2": 850, "R-3": 600, "R-4": 600, "TH": 600, "RM": 600 },
+    "R-2_front_setback": 25,
+    "R-4_zero_lot_line": true,
+    "R-4_max_attached_units": 8,
+    "R-4_max_continuous_row_ft": 200,
+    "parking_residential": 2
+  }
+}

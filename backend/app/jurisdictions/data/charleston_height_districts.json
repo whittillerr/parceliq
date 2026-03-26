@@ -1,0 +1,34 @@
+{
+  "metadata": {
+    "source": "Sec. 54-306, City of Charleston Code of Ordinances",
+    "note": "Where height district applies, it controls over Table 3.1. The MORE RESTRICTIVE of height district or base zoning governs.",
+    "measurement": "Finish-floor to finish-floor. Max residential floor-to-floor: 12 ft (BAR may waive to 14 ft on 1st/2nd). Max non-residential story: 20 ft (BAR may waive to 25 ft).",
+    "fema_bonus": "FEMA elevation adds up to +6 ft to max allowed height.",
+    "proximity_rule": "Sec. 54-306(12): Structure within 50 ft of Group 1 (exceptional) or Group 2 (excellent) rated historic building cannot exceed that building's height unless BAR approves. Does NOT apply in Height District 8.",
+    "facade_rule": "Height-to-eave cannot exceed 2× width of primary façade (BAR may waive)."
+  },
+  "districts": {
+    "2.5": { "max_stories": 2.5, "max_feet": null, "bar_bonus": 0.5, "section": "54-306.A", "notes": "Accessory ≤1.5 stories, 11 ft eave" },
+    "3": { "max_stories": 3, "max_feet": null, "bar_bonus": null, "section": "54-306.B", "notes": "Attic NOT habitable; commercial GF ≤14 ft. BAR may waive attic limit." },
+    "2.5-3.5": { "max_stories": null, "max_feet": null, "bar_bonus": null, "section": "54-306.C", "notes": "Varies by ROW width. ROW>50'=3 stories/45 ft; ROW 35-50'=1:1 ratio; ROW<35'=2.5 stories. BAR may permit up to 4 stories/45 ft for MF/PUDs.", "variable": true },
+    "3.5": { "max_stories": 3.5, "max_feet": 50, "bar_bonus": 0.5, "section": "54-306.D" },
+    "4": { "max_stories": 4, "max_feet": 50, "bar_bonus": 0.5, "section": "54-306.E" },
+    "5": { "max_stories": 5, "max_feet": null, "bar_bonus": 1.0, "section": "54-306.F", "notes": "Appurtenances ≤9 ft; ≥5 stories requires 10 ft sidewalks" },
+    "6": { "max_stories": 6, "max_feet": null, "bar_bonus": 1.0, "section": "54-306.G", "notes": "Appurtenances ≤9 ft; >6 stories requires 10 ft sidewalks" },
+    "8": { "max_stories": 8, "max_feet": null, "bar_bonus": 1.0, "section": "54-306.H", "notes": "Proximity rule (54-306(12)) does NOT apply" },
+    "4-12": { "max_stories": 4, "max_feet": null, "bar_bonus": null, "section": "54-306.I", "notes": "Upper Peninsula incentive-based. Base 4 stories, up to 12 via points. See UP district data.", "incentive_max_stories": 12 },
+    "3X": { "max_stories": null, "max_feet": null, "bar_bonus": null, "section": "54-306.J", "notes": "Max height = 3× least dimension (ROW center to building face). Min height 30 ft.", "formula": "3 * distance_row_center_to_face", "min_feet": 30 },
+    "85/200": { "max_stories": null, "max_feet": 200, "bar_bonus": null, "section": "54-306.K", "notes": "Min 30 ft, max 200 ft. ≥40 ft from ROW center. Above 85 ft: ≥55 ft from ROW, ≤50% coverage.", "min_feet": 30, "stepback_threshold": 85 },
+    "85/125": { "max_stories": null, "max_feet": 125, "bar_bonus": null, "section": "54-306.L", "notes": "Min 30 ft, max 125 ft. Same setback rules. Above 85 ft: ≤75% coverage.", "min_feet": 30, "stepback_threshold": 85 },
+    "85/30": { "max_stories": null, "max_feet": 85, "bar_bonus": null, "section": "54-306.M", "notes": "Min 30 ft, max 85 ft. ≥40 ft from ROW center.", "min_feet": 30 },
+    "100/30": { "max_stories": null, "max_feet": 100, "bar_bonus": null, "section": "54-306.N", "notes": "+1 story in step-back. Min GF 15 ft. 75% GF non-residential for bonus.", "min_feet": 30, "bonus_story_with_stepback": true },
+    "80/30": { "max_stories": null, "max_feet": 80, "bar_bonus": null, "section": "54-306.O", "notes": "Min 30 ft, max 80 ft. Above 55 ft: ≥25 ft from all street ROW.", "min_feet": 30, "stepback_threshold": 55 },
+    "50W": { "max_stories": null, "max_feet": 50, "bar_bonus": null, "section": "54-306.P", "notes": "25 ft from high water; 10 ft from canals." },
+    "W": { "max_stories": null, "max_feet": null, "bar_bonus": null, "section": "54-306.Q", "notes": "No fixed max. Setback ≥ height. Max 25% ground coverage.", "formula": "setback_must_equal_height", "max_coverage_pct": 25 },
+    "WP": { "max_stories": null, "max_feet": 60, "bar_bonus": null, "section": "54-306.R", "notes": "Max 25% ground coverage.", "max_coverage_pct": 25 },
+    "56/30V": { "max_stories": null, "max_feet": 56, "bar_bonus": null, "section": "54-306.S", "notes": "FEMA V-Zone. Min 30 ft, max 56 ft (70 ft with incentive). BAR reviews above 56 ft. 1:1 SF bonus for GF activation.", "min_feet": 30, "incentive_max_feet": 70 },
+    "120/30": { "max_stories": null, "max_feet": 120, "bar_bonus": null, "section": "54-306.T", "notes": "Min 30 ft, max 120 ft. Above 70 ft: ≥30 ft from street ROW.", "min_feet": 30, "stepback_threshold": 70 },
+    "55/30S": { "max_stories": null, "max_feet": 55, "bar_bonus": null, "section": "54-306.U", "notes": "Min 30 ft, max 55 ft. No min street setback.", "min_feet": 30 },
+    "55/30": { "max_stories": null, "max_feet": 55, "bar_bonus": null, "section": "54-306.V", "notes": "Min 30 ft, max 55 ft. No street setback required.", "min_feet": 30 }
+  }
+}

@@ -122,4 +122,7 @@ async def analyze_parcel(request: AnalysisRequest):
             ai_model="claude-sonnet-4-20250514",
             jurisdiction_module_version="charleston-0.1.0",
         ),
+        confidence_tier=1,
+        confidence_label="Verified Data",
+        disclaimer=None,
     )

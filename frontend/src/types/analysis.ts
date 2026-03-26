@@ -49,6 +49,10 @@ export interface Setbacks {
   front?: number;
   side?: number;
   rear?: number;
+  front_rear_total?: number;
+  side_sw?: number;
+  side_ne?: number;
+  setback_notes?: string;
 }
 
 export interface DevelopmentEnvelope {
@@ -64,6 +68,9 @@ export interface DevelopmentEnvelope {
   setbacks: Setbacks;
   buildable_area_sf?: number;
   parking_requirements?: string;
+  lot_occupancy_pct?: number;
+  height_source?: string;
+  binding_constraint?: string;
 }
 
 export interface Scenario {
@@ -101,6 +108,13 @@ export interface CostFraming {
   tax_credit_eligibility?: string;
   bailey_bill_eligible?: boolean;
   total_cost_range?: string;
+  construction_type?: string;
+  base_hard_cost_range?: string;
+  applicable_premiums?: string[];
+  premium_adjusted_range?: string;
+  all_in_estimate_range?: string;
+  impact_fees_estimate?: string;
+  cws_fee_warning?: string;
 }
 
 export interface AnalysisMetadata {
@@ -120,4 +134,7 @@ export interface AnalysisResponse {
   process_timeline: ProcessTimeline;
   cost_framing: CostFraming;
   metadata: AnalysisMetadata;
+  confidence_tier: number; // 1, 2, or 3
+  confidence_label: string;
+  disclaimer?: string;
 }

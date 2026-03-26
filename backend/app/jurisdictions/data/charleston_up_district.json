@@ -1,0 +1,54 @@
+{
+  "source": "Sec. 54-299.21 through 54-299.33 (Part 17)",
+  "last_amendment": "Ord. No. 2025-086, June 17, 2025",
+  "base_density": {
+    "value": 26.4,
+    "unit": "du/highland_acre",
+    "above_4_stories": "not_regulated"
+  },
+  "base_height": {
+    "max_stories": 4,
+    "min_height": null,
+    "note": "No minimum height. Base max 4 stories. Height bonuses via incentive points."
+  },
+  "parking": {
+    "workforce_housing": { "spaces_per": 0.5, "per": "unit" },
+    "all_other_residential": { "spaces_per": 1.0, "per": "unit" },
+    "other_uses": "Article 3 Part 4 rules",
+    "off_site_allowed": { "max_distance_ft": 1500, "lease_term_years": 10 },
+    "car_share_ev_compact_count": true
+  },
+  "incentive_table": {
+    "stories_to_points": {
+      "4": 0, "5": 5, "6": 6, "7": 7, "8": 8, "9": 9, "10": 10, "11": 11, "12": 12
+    },
+    "above_4_stories_density": "not_regulated",
+    "max_stories": 12
+  },
+  "incentive_categories": [
+    { "id": 1, "name": "Stormwater Management", "max_points": 2, "details": "LID, ≤65% impervious" },
+    { "id": 2, "name": "Vegetated Green Roof", "max_points": 2, "details": "700 SF/30%=1pt, 1500 SF/60%=2pt" },
+    { "id": 3, "name": "Building Certification", "max_points": 8, "details": "LEED Silver=2, Gold/RISES=6, Platinum=8" },
+    { "id": 4, "name": "Mobility/Transportation", "max_points": 2, "details": "Alt transport, bicycle, mobility fund. Note: research showed ~3 but total_available_points=29 requires this to be 2 to reconcile. Verify against Sec. 54-299.32 Table 1." },
+    { "id": 5, "name": "Renewable Energy", "max_points": 2, "details": "5kW=1pt, 12kW=2pt" },
+    { "id": 6, "name": "Outdoor Public Space", "max_points": 4, "details": "2,500-20,000+ SF, general or exceptional" },
+    { "id": 7, "name": "Workforce Housing", "max_points": 9, "details": "60% AMI=2pt, 80-120% AMI 15units=3pt, 25units=4pt" }
+  ],
+  "total_available_points": 29,
+  "mobility_improvement_fund": {
+    "cost": "$25,000 or $0.60/SF total gross SF, whichever greater",
+    "max_purchased_pct": 50,
+    "note": "Max 50% of building's total required points can come from fund. Cannot buy way to 12 stories alone."
+  },
+  "mandatory_workforce_above_4": {
+    "trigger": "any building >4 stories with residential",
+    "min_affordable_pct": 10,
+    "income_limit_owner": "120% AMI",
+    "income_limit_rental": "80% AMI",
+    "note": "MANDATORY prerequisite for height bonuses, not optional."
+  },
+  "covenant_durations": {
+    "owner_occupied": "90-year resale restriction",
+    "rental": "30-year restriction"
+  }
+}

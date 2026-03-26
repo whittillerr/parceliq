@@ -2,19 +2,25 @@ import { useState } from "react";
 import type { AnalysisRequest, AnalysisResponse, Jurisdiction, UseType } from "../types/analysis";
 import { analyzeParcel } from "../api/client";
 
-const JURISDICTIONS: { value: Jurisdiction; label: string }[] = [
+const TIER_1_JURISDICTIONS: { value: Jurisdiction; label: string }[] = [
   { value: "charleston", label: "City of Charleston" },
-  { value: "mount_pleasant", label: "Mount Pleasant" },
-  { value: "north_charleston", label: "North Charleston" },
-  { value: "sullivans_island", label: "Sullivan's Island" },
-  { value: "isle_of_palms", label: "Isle of Palms" },
-  { value: "folly_beach", label: "Folly Beach" },
-  { value: "james_island", label: "Town of James Island" },
-  { value: "kiawah", label: "Kiawah Island" },
-  { value: "summerville", label: "Summerville" },
-  { value: "goose_creek", label: "Goose Creek" },
-  { value: "hanahan", label: "Hanahan" },
+  { value: "mount_pleasant", label: "Town of Mount Pleasant" },
+];
+
+const TIER_2_JURISDICTIONS: { value: Jurisdiction; label: string }[] = [
+  { value: "north_charleston", label: "City of North Charleston" },
   { value: "unincorporated", label: "Unincorporated Charleston County" },
+];
+
+const TIER_3_JURISDICTIONS: { value: Jurisdiction; label: string }[] = [
+  { value: "sullivans_island", label: "Town of Sullivan's Island" },
+  { value: "isle_of_palms", label: "City of Isle of Palms" },
+  { value: "folly_beach", label: "City of Folly Beach" },
+  { value: "james_island", label: "Town of James Island" },
+  { value: "kiawah", label: "Town of Kiawah Island" },
+  { value: "summerville", label: "Town of Summerville" },
+  { value: "goose_creek", label: "City of Goose Creek" },
+  { value: "hanahan", label: "City of Hanahan" },
 ];
 
 const USE_TYPE_OPTIONS: { value: UseType | "unsure"; label: string }[] = [
@@ -45,6 +51,14 @@ function parseLotSize(input: string): number | undefined {
   return undefined;
 }
 
+function getJurisdictionTier(jurisdiction: Jurisdiction | ""): number | null {
+  if (!jurisdiction) return null;
+  if (TIER_1_JURISDICTIONS.some((j) => j.value === jurisdiction)) return 1;
+  if (TIER_2_JURISDICTIONS.some((j) => j.value === jurisdiction)) return 2;
+  if (TIER_3_JURISDICTIONS.some((j) => j.value === jurisdiction)) return 3;
+  return null;
+}
+
 interface AnalysisFormProps {
   onAnalysisComplete: (response: AnalysisResponse) => void;
 }
@@ -53,6 +67,9 @@ export default function AnalysisForm({ onAnalysisComplete }: AnalysisFormProps) 
   const [jurisdiction, setJurisdiction] = useState<Jurisdiction | "">("");
   const [address, setAddress] = useState("");
   const [lotSizeInput, setLotSizeInput] = useState("");
+  const [zoningDistrict, setZoningDistrict] = useState("");
+  const [heightDistrict, setHeightDistrict] = useState("");
+  const [onPeninsula, setOnPeninsula] = useState(false);
   const [selectedUseTypes, setSelectedUseTypes] = useState<Set<UseType | "unsure">>(new Set());
   const [approximateScale, setApproximateScale] = useState("");
   const [existingConditions, setExistingConditions] = useState("");
@@ -61,6 +78,7 @@ export default function AnalysisForm({ onAnalysisComplete }: AnalysisFormProps) 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const tier = getJurisdictionTier(jurisdiction);
   const canSubmit = jurisdiction !== "" && address.trim() !== "" && !loading;
 
   function toggleUseType(value: UseType | "unsure") {
@@ -120,10 +138,35 @@ export default function AnalysisForm({ onAnalysisComplete }: AnalysisFormProps) 
                          transition-colors"
             >
               <option value="" disabled>Select jurisdiction</option>
-              {JURISDICTIONS.map((j) => (
-                <option key={j.value} value={j.value}>{j.label}</option>
-              ))}
+              <optgroup label="Full Analysis">
+                {TIER_1_JURISDICTIONS.map((j) => (
+                  <option key={j.value} value={j.value}>{j.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Research-Backed Analysis">
+                {TIER_2_JURISDICTIONS.map((j) => (
+                  <option key={j.value} value={j.value}>{j.label}</option>
+                ))}
+              </optgroup>
+              <optgroup label="Preliminary Analysis">
+                {TIER_3_JURISDICTIONS.map((j) => (
+                  <option key={j.value} value={j.value}>{j.label}</option>
+                ))}
+              </optgroup>
             </select>
+
+            {/* Tier inline notes */}
+            {tier === 3 && (
+              <p className="mt-1.5 text-xs text-amber-700 bg-amber-50 rounded px-3 py-2 border border-amber-200">
+                Zoning data for this jurisdiction has not been independently verified.
+                Analysis will be based on AI knowledge with disclaimers.
+              </p>
+            )}
+            {tier === 2 && (
+              <p className="mt-1.5 text-xs text-blue-700 bg-blue-50 rounded px-3 py-2 border border-blue-200">
+                This jurisdiction uses AI-assisted analysis based on validated research data.
+              </p>
+            )}
           </div>
 
           <div>
@@ -142,6 +185,89 @@ export default function AnalysisForm({ onAnalysisComplete }: AnalysisFormProps) 
                          transition-colors"
             />
           </div>
+
+          {/* Zoning District — Tier 1 only (required context) */}
+          {tier === 1 && (
+            <div>
+              <label htmlFor="zoningDistrict" className="block text-sm font-medium text-navy mb-1.5">
+                Zoning District
+              </label>
+              <input
+                id="zoningDistrict"
+                type="text"
+                value={zoningDistrict}
+                onChange={(e) => setZoningDistrict(e.target.value)}
+                placeholder="e.g., SR-2, MU-1, GB, UC-OD"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-navy
+                           placeholder:text-gray-400
+                           focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent
+                           transition-colors"
+              />
+            </div>
+          )}
+
+          {/* Height District — Charleston only */}
+          {jurisdiction === "charleston" && (
+            <div>
+              <label htmlFor="heightDistrict" className="block text-sm font-medium text-navy mb-1.5">
+                Height District
+              </label>
+              <input
+                id="heightDistrict"
+                type="text"
+                value={heightDistrict}
+                onChange={(e) => setHeightDistrict(e.target.value)}
+                placeholder="e.g., 4, 6, 4-12, 85/200"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-navy
+                           placeholder:text-gray-400
+                           focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent
+                           transition-colors"
+              />
+            </div>
+          )}
+
+          {/* On Peninsula toggle — Charleston only */}
+          {jurisdiction === "charleston" && (
+            <div className="flex items-center gap-3">
+              <label htmlFor="onPeninsula" className="text-sm font-medium text-navy">
+                On Peninsula?
+              </label>
+              <button
+                id="onPeninsula"
+                type="button"
+                role="switch"
+                aria-checked={onPeninsula}
+                onClick={() => setOnPeninsula(!onPeninsula)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors
+                  ${onPeninsula ? "bg-accent" : "bg-gray-300"}`}
+              >
+                <span
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform
+                    ${onPeninsula ? "translate-x-6" : "translate-x-1"}`}
+                />
+              </button>
+            </div>
+          )}
+
+          {/* Zoning District — optional for Tier 2/3 */}
+          {(tier === 2 || tier === 3) && (
+            <div>
+              <label htmlFor="zoningDistrictOptional" className="block text-sm font-medium text-navy mb-1.5">
+                Zoning District <span className="text-navy/40 font-normal">(optional)</span>
+              </label>
+              <input
+                id="zoningDistrictOptional"
+                type="text"
+                value={zoningDistrict}
+                onChange={(e) => setZoningDistrict(e.target.value)}
+                placeholder="Enter if known — AI will attempt to infer if left blank"
+                className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-navy
+                           placeholder:text-gray-400
+                           focus:outline-none focus:ring-2 focus:ring-accent/40 focus:border-accent
+                           transition-colors"
+              />
+            </div>
+          )}
         </div>
 
         {/* --- Optional section toggle --- */}

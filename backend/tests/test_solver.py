@@ -405,8 +405,8 @@ def test_unknown_jurisdiction():
         zoning_district="R-1",
         use_type="residential",
     )
-    out = solve(inp)
-    assert out.solver_mode == "ai_only"
+    with pytest.raises(ValueError, match="Unknown jurisdiction"):
+        solve(inp)
 
 
 def test_unknown_district_charleston():

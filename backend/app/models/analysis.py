@@ -64,6 +64,10 @@ class Setbacks(BaseModel):
     front: Optional[float] = None
     side: Optional[float] = None
     rear: Optional[float] = None
+    front_rear_total: Optional[float] = None
+    side_sw: Optional[float] = None
+    side_ne: Optional[float] = None
+    setback_notes: Optional[str] = None
 
 
 class DevelopmentEnvelope(BaseModel):
@@ -79,6 +83,9 @@ class DevelopmentEnvelope(BaseModel):
     setbacks: Setbacks
     buildable_area_sf: Optional[float] = None
     parking_requirements: Optional[str] = None
+    lot_occupancy_pct: Optional[float] = None
+    height_source: Optional[str] = None
+    binding_constraint: Optional[str] = None
 
 
 class Scenario(BaseModel):
@@ -116,6 +123,13 @@ class CostFraming(BaseModel):
     tax_credit_eligibility: Optional[str] = None
     bailey_bill_eligible: Optional[bool] = None
     total_cost_range: Optional[str] = None
+    construction_type: Optional[str] = None
+    base_hard_cost_range: Optional[str] = None
+    applicable_premiums: Optional[List[str]] = None
+    premium_adjusted_range: Optional[str] = None
+    all_in_estimate_range: Optional[str] = None
+    impact_fees_estimate: Optional[str] = None
+    cws_fee_warning: Optional[str] = None
 
 
 class AnalysisMetadata(BaseModel):
@@ -135,3 +149,6 @@ class AnalysisResponse(BaseModel):
     process_timeline: ProcessTimeline
     cost_framing: CostFraming
     metadata: AnalysisMetadata
+    confidence_tier: int
+    confidence_label: str
+    disclaimer: Optional[str] = None

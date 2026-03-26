@@ -1,0 +1,39 @@
+{
+  "source": "Sec. 54-317, Table 3.3",
+  "on_peninsula": {
+    "single_family_duplex": { "spaces_per": 2, "per": "unit" },
+    "multi_family_3plus": { "spaces_per": 1.5, "per": "unit", "mu_wh_override": 1.0 },
+    "affordable_housing": { "spaces_per": 0.25, "per": "unit", "note": "1 per 4 units. Applies ONLY to units designated as affordable housing under Sec. 54-207 or footnote 21. This is a separate mechanism from MU-WH workforce parking (0.5/unit). Standard MF rate (1.5/unit) applies to non-affordable units in the same project." },
+    "hotel": { "spaces_per": 0.667, "per": "sleeping_unit", "note": "2 per 3 sleeping units" },
+    "office": { "spaces_per_sf": 500, "note": "1 per 500 SF" },
+    "retail": { "spaces_per_sf": 400, "note": "1 per 400 SF GFA" },
+    "restaurant": { "spaces_per_sf": 100, "note": "1 per 100 SF patron area" },
+    "fast_food": { "spaces_per_sf": 75, "note": "1 per 75 SF patron area" },
+    "church": { "spaces_per_seats": 8, "note": "1 per 8 seats" },
+    "health_club": { "spaces_per_sf": 400 }
+  },
+  "off_peninsula": {
+    "single_family_duplex": { "spaces_per": 2, "per": "unit" },
+    "multi_family_3plus": { "spaces_per": 1.5, "per": "unit", "mu_wh_override": 1.0 },
+    "affordable_housing": { "spaces_per": 0.25, "per": "unit", "note": "Sec. 54-207 designated affordable units only. Standard MF rate applies to non-affordable units." },
+    "hotel": { "spaces_per": 0.667, "per": "sleeping_unit" },
+    "office": { "spaces_per_sf": 240, "note": "1 per 240 SF" },
+    "retail": { "spaces_per_sf": 200, "note": "1 per 200 SF GFA" },
+    "restaurant": { "spaces_per_sf": 90, "note": "1 per 90 SF patron area" },
+    "fast_food": { "spaces_per_sf": 75 },
+    "church": { "spaces_per_seats": 4, "note": "1 per 4 seats" },
+    "health_club": { "spaces_per_sf": 400 }
+  },
+  "mu_wh_special": {
+    "workforce_units": { "spaces_per": 0.5, "per": "unit" },
+    "market_rate_residential": { "spaces_per": 1.0, "per": "unit" },
+    "first_5000_sf_nonres": "parking_exempt_except_restaurants_bars",
+    "office": { "spaces_per_sf": 600 },
+    "no_off_street_loading": true
+  },
+  "shopping_center": {
+    "first_20000_sf": { "spaces_per_sf": 200 },
+    "20001_to_140000_sf": { "spaces_per_sf": 250 },
+    "over_140000_sf": { "spaces_per_sf": 300 }
+  }
+}

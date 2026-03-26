@@ -1,13 +1,14 @@
 """Main solver orchestrator.
 
-Dispatches to jurisdiction-specific engines or returns ai_only mode
-for unsupported jurisdictions.
+Dispatches to jurisdiction-specific engines based on the tier system,
+or returns ai_only mode for Tier 2/3 jurisdictions.
 """
 
 from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
+from app.jurisdictions.registry import get_jurisdiction
 from app.solver.charleston_engine import CharlestonSolverEngine
 from app.solver.data.charleston_zoning import CHARLESTON_DISTRICTS
 from app.solver.models import (
@@ -16,31 +17,6 @@ from app.solver.models import (
     SolverOutput,
 )
 from app.solver.mt_pleasant_engine import MtPleasantSolverEngine
-
-# Registry of supported jurisdictions
-JURISDICTION_REGISTRY: Dict[str, Dict[str, Any]] = {
-    "charleston": {
-        "solver_enabled": True,
-        "engine_class": CharlestonSolverEngine,
-        "engine_name": "charleston_v1",
-    },
-    "mount_pleasant": {
-        "solver_enabled": True,
-        "engine_class": MtPleasantSolverEngine,
-        "engine_name": "mt_pleasant_v1",
-    },
-    # These jurisdictions fall through to ai_only
-    "north_charleston": {"solver_enabled": False, "engine_name": "north_charleston_stub"},
-    "unincorporated": {"solver_enabled": False, "engine_name": "unincorporated_stub"},
-    "sullivans_island": {"solver_enabled": False, "engine_name": "sullivans_island_stub"},
-    "isle_of_palms": {"solver_enabled": False, "engine_name": "isle_of_palms_stub"},
-    "folly_beach": {"solver_enabled": False, "engine_name": "folly_beach_stub"},
-    "james_island": {"solver_enabled": False, "engine_name": "james_island_stub"},
-    "kiawah": {"solver_enabled": False, "engine_name": "kiawah_stub"},
-    "summerville": {"solver_enabled": False, "engine_name": "summerville_stub"},
-    "goose_creek": {"solver_enabled": False, "engine_name": "goose_creek_stub"},
-    "hanahan": {"solver_enabled": False, "engine_name": "hanahan_stub"},
-}
 
 
 def _empty_output(jurisdiction: str, engine_name: str) -> SolverOutput:
@@ -56,50 +32,77 @@ def _empty_output(jurisdiction: str, engine_name: str) -> SolverOutput:
 def solve(solver_input: SolverInput) -> SolverOutput:
     """Run the constraint solver for a given parcel.
 
-    Returns SolverOutput with solver_mode="full" if a jurisdiction engine
-    exists, or solver_mode="ai_only" if the jurisdiction isn't supported
-    (letting Claude generate the full analysis).
+    Tier 1 (Charleston, Mt Pleasant): Full solver path if zoning district provided.
+    Tier 2 (N. Charleston, Unincorporated): AI-only with research context.
+    Tier 3 (all others): AI-only with training knowledge + disclaimers.
     """
-    jurisdiction = solver_input.jurisdiction
-    registry_entry = JURISDICTION_REGISTRY.get(jurisdiction)
+    module = get_jurisdiction(solver_input.jurisdiction)
 
-    if registry_entry is None:
-        return _empty_output(jurisdiction, "unknown")
+    if module.tier == 1 and solver_input.zoning_district:
+        # Full solver path
+        if module.slug == "charleston":
+            engine = CharlestonSolverEngine()
+        elif module.slug == "mount_pleasant":
+            engine = MtPleasantSolverEngine()
+        else:
+            return _empty_output(solver_input.jurisdiction, f"{module.slug}_stub")
 
-    engine_name = registry_entry["engine_name"]
+        district_data = _load_district_data(module.slug, solver_input.zoning_district)
+        if district_data is None:
+            return SolverOutput(
+                envelope=DevelopmentEnvelope(
+                    zoning_district=solver_input.zoning_district,
+                    zoning_description=f"Unknown district: {solver_input.zoning_district}",
+                ),
+                scenarios=[],
+                binding_constraints=[],
+                solver_mode="ai_only",
+                jurisdiction_engine=f"{module.slug}_v1",
+            )
 
-    if not registry_entry.get("solver_enabled"):
-        return _empty_output(jurisdiction, engine_name)
+        envelope = engine.calculate_envelope(district_data, solver_input)
+        scenarios = engine.calculate_scenarios(envelope, solver_input)
+        binding = engine.identify_binding_constraints(envelope, solver_input)
 
-    engine = registry_entry["engine_class"]()
-
-    # Load district data
-    district_data = _load_district_data(jurisdiction, solver_input.zoning_district)
-    if district_data is None:
-        # Unknown zoning district — fall back to ai_only
         return SolverOutput(
-            envelope=DevelopmentEnvelope(
-                zoning_district=solver_input.zoning_district,
-                zoning_description=f"Unknown district: {solver_input.zoning_district}",
-            ),
+            envelope=envelope,
+            scenarios=scenarios,
+            binding_constraints=binding,
+            solver_mode="full",
+            jurisdiction_engine=f"{module.slug}_v1",
+        )
+
+    elif module.tier == 1 and not solver_input.zoning_district:
+        # Tier 1 but no district — can't run solver
+        lookup_hint = (
+            "charleston-sc.gov/GIS" if module.slug == "charleston"
+            else "mtpleasantgis.com"
+        )
+        return SolverOutput(
+            envelope=DevelopmentEnvelope(),
+            scenarios=[],
+            binding_constraints=[],
+            solver_mode="partial",
+            jurisdiction_engine=f"{module.slug}_v1",
+            warnings=[
+                f"Zoning district not provided. Provide the district code for precise "
+                f"calculations. Check your zoning at {lookup_hint}."
+            ],
+            confidence="moderate",
+            ai_context=module.get_ai_context(),
+        )
+
+    else:
+        # Tier 2 or 3 — no solver, AI handles everything
+        return SolverOutput(
+            envelope=DevelopmentEnvelope(),
             scenarios=[],
             binding_constraints=[],
             solver_mode="ai_only",
-            jurisdiction_engine=engine_name,
+            jurisdiction_engine=f"{module.slug}_ai",
+            confidence="moderate" if module.tier == 2 else "low",
+            ai_context=module.get_ai_context(),
         )
-
-    # Run the engine
-    envelope = engine.calculate_envelope(district_data, solver_input)
-    scenarios = engine.calculate_scenarios(envelope, solver_input)
-    binding = engine.identify_binding_constraints(envelope, solver_input)
-
-    return SolverOutput(
-        envelope=envelope,
-        scenarios=scenarios,
-        binding_constraints=binding,
-        solver_mode="full",
-        jurisdiction_engine=engine_name,
-    )
 
 
 def _load_district_data(
@@ -108,6 +111,5 @@ def _load_district_data(
     if jurisdiction == "charleston":
         return CHARLESTON_DISTRICTS.get(zoning_district)
     if jurisdiction == "mount_pleasant":
-        # Mt Pleasant engine handles its own data lookup internally
         return {"_mt_pleasant": True}
     return None

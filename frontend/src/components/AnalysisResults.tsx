@@ -4,10 +4,10 @@ interface AnalysisResultsProps {
   data: AnalysisResponse;
 }
 
-/* ─── Helpers ─── */
+/* --- Helpers --- */
 
 function fmt(val: number | undefined | null, suffix = ""): string {
-  if (val == null) return "—";
+  if (val == null) return "\u2014";
   return val.toLocaleString() + suffix;
 }
 
@@ -25,7 +25,44 @@ function scenarioBorder(name: string) {
   return "border-l-orange-400";
 }
 
-/* ─── Section wrapper ─── */
+/* --- Confidence Badge --- */
+
+function ConfidenceBadge({ tier, label }: { tier: number; label: string }) {
+  if (tier === 1) {
+    return (
+      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-700 text-sm font-medium">
+        <span>&#x2713;</span> {label} &mdash; Calculations from validated zoning ordinance
+      </div>
+    );
+  }
+  if (tier === 2) {
+    return (
+      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-100 text-blue-700 text-sm font-medium">
+        <span>&#x25D0;</span> {label} &mdash; AI analysis using verified regulatory research
+      </div>
+    );
+  }
+  return (
+    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 text-sm font-medium">
+      <span>&#x26A0;</span> {label} &mdash; Verify all figures with local planning department
+    </div>
+  );
+}
+
+/* --- Disclaimer Callout --- */
+
+function DisclaimerCallout({ disclaimer }: { disclaimer: string }) {
+  return (
+    <div
+      className="rounded-lg border-l-4 border-amber-400 px-5 py-4 text-sm text-amber-900 leading-relaxed"
+      style={{ backgroundColor: "#FFF8E1" }}
+    >
+      {disclaimer}
+    </div>
+  );
+}
+
+/* --- Section wrapper --- */
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -38,23 +75,41 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
-/* ─── 1. Development Envelope ─── */
+/* --- 1. Development Envelope --- */
 
 function EnvelopeSection({ data }: AnalysisResultsProps) {
   const { envelope, parcel } = data;
   const heightStr = [
     envelope.max_height_ft ? `${envelope.max_height_ft} ft` : null,
     envelope.max_stories ? `${envelope.max_stories} stories` : null,
-  ].filter(Boolean).join(" / ") || "—";
+  ].filter(Boolean).join(" / ") || "\u2014";
 
-  const metrics = [
+  const metrics: { label: string; value: string }[] = [
     { label: "Max Height", value: heightStr },
-    { label: "FAR", value: envelope.far != null ? String(envelope.far) : "—" },
-    { label: "Lot Coverage", value: envelope.max_lot_coverage_pct != null ? `${envelope.max_lot_coverage_pct}%` : "—" },
-    { label: "Density", value: envelope.density_units_per_acre != null ? `${envelope.density_units_per_acre} units/acre` : "—" },
-    { label: "Front Setback", value: envelope.setbacks.front != null ? `${envelope.setbacks.front} ft` : "—" },
+    { label: "FAR", value: envelope.far != null ? String(envelope.far) : "\u2014" },
+    { label: "Lot Coverage", value: envelope.max_lot_coverage_pct != null ? `${envelope.max_lot_coverage_pct}%` : "\u2014" },
+    { label: "Density", value: envelope.density_units_per_acre != null ? `${envelope.density_units_per_acre} units/acre` : "\u2014" },
+    { label: "Front Setback", value: envelope.setbacks.front != null ? `${envelope.setbacks.front} ft` : "\u2014" },
     { label: "Buildable Area", value: envelope.buildable_area_sf ? `${fmt(envelope.buildable_area_sf)} SF` : "Provide lot size for calculation" },
   ];
+
+  if (envelope.lot_occupancy_pct != null) {
+    metrics.splice(2, 0, { label: "Lot Occupancy", value: `${envelope.lot_occupancy_pct}%` });
+  }
+  if (envelope.height_source) {
+    metrics.push({ label: "Height Source", value: envelope.height_source });
+  }
+  if (envelope.binding_constraint) {
+    metrics.push({ label: "Binding Constraint", value: envelope.binding_constraint });
+  }
+
+  // Show asymmetric side setbacks if available
+  const setbackDetails: string[] = [];
+  if (envelope.setbacks.side_sw != null) setbackDetails.push(`SW: ${envelope.setbacks.side_sw} ft`);
+  if (envelope.setbacks.side_ne != null) setbackDetails.push(`NE: ${envelope.setbacks.side_ne} ft`);
+  if (setbackDetails.length > 0) {
+    metrics.push({ label: "Side Setbacks", value: setbackDetails.join(" / ") });
+  }
 
   return (
     <Section title="Development Envelope">
@@ -68,7 +123,7 @@ function EnvelopeSection({ data }: AnalysisResultsProps) {
         </div>
         <p className="text-sm text-navy/50">
           {parcel.address} &middot; {parcel.jurisdiction_display}
-          {parcel.lot_size_sf ? ` · ${fmt(parcel.lot_size_sf)} SF` : ""}
+          {parcel.lot_size_sf ? ` \u00b7 ${fmt(parcel.lot_size_sf)} SF` : ""}
         </p>
 
         {/* Metrics grid */}
@@ -80,6 +135,11 @@ function EnvelopeSection({ data }: AnalysisResultsProps) {
             </div>
           ))}
         </div>
+
+        {/* Setback notes */}
+        {envelope.setbacks.setback_notes && (
+          <p className="text-xs text-navy/50 italic">{envelope.setbacks.setback_notes}</p>
+        )}
 
         {/* Permitted uses */}
         <div>
@@ -117,7 +177,7 @@ function EnvelopeSection({ data }: AnalysisResultsProps) {
   );
 }
 
-/* ─── 2. Scenarios ─── */
+/* --- 2. Scenarios --- */
 
 function ScenariosSection({ data }: AnalysisResultsProps) {
   return (
@@ -176,16 +236,16 @@ function ScenariosSection({ data }: AnalysisResultsProps) {
   );
 }
 
-/* ─── 3. Risk Map ─── */
+/* --- 3. Risk Map --- */
 
 const RISK_FACTORS: { key: keyof AnalysisResponse["risk_map"]; label: string; icon: string }[] = [
-  { key: "historic_overlay", label: "Historic Overlay", icon: "🏛" },
-  { key: "flood_zone", label: "Flood Zone", icon: "🌊" },
-  { key: "building_category", label: "Building Category", icon: "🏗" },
-  { key: "accommodation_overlay", label: "Accommodation Overlay", icon: "🏨" },
-  { key: "community_sensitivity", label: "Community Sensitivity", icon: "👥" },
-  { key: "recent_board_decisions", label: "Recent Board Decisions", icon: "⚖️" },
-  { key: "environmental_constraints", label: "Environmental Constraints", icon: "🌳" },
+  { key: "historic_overlay", label: "Historic Overlay", icon: "\uD83C\uDFDB" },
+  { key: "flood_zone", label: "Flood Zone", icon: "\uD83C\uDF0A" },
+  { key: "building_category", label: "Building Category", icon: "\uD83C\uDFD7" },
+  { key: "accommodation_overlay", label: "Accommodation Overlay", icon: "\uD83C\uDFE8" },
+  { key: "community_sensitivity", label: "Community Sensitivity", icon: "\uD83D\uDC65" },
+  { key: "recent_board_decisions", label: "Recent Board Decisions", icon: "\u2696\uFE0F" },
+  { key: "environmental_constraints", label: "Environmental Constraints", icon: "\uD83C\uDF33" },
 ];
 
 function RiskMapSection({ data }: AnalysisResultsProps) {
@@ -211,7 +271,7 @@ function RiskMapSection({ data }: AnalysisResultsProps) {
   );
 }
 
-/* ─── 4. Process & Timeline ─── */
+/* --- 4. Process & Timeline --- */
 
 function ProcessSection({ data }: AnalysisResultsProps) {
   const tl = data.process_timeline;
@@ -238,7 +298,7 @@ function ProcessSection({ data }: AnalysisResultsProps) {
         <div>
           <div className="text-xs text-navy/50 mb-3">Review Sequence</div>
           <div className="flex flex-wrap items-center gap-2 text-sm text-navy/70">
-            {tl.review_sequence.split("→").map((step, i, arr) => (
+            {tl.review_sequence.split("\u2192").map((step, i, arr) => (
               <span key={i} className="flex items-center gap-2">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="w-5 h-5 rounded-full bg-accent/10 text-accent text-xs font-semibold flex items-center justify-center">
@@ -287,7 +347,7 @@ function ProcessSection({ data }: AnalysisResultsProps) {
   );
 }
 
-/* ─── 5. Cost Framing ─── */
+/* --- 5. Cost Framing --- */
 
 function CostSection({ data }: AnalysisResultsProps) {
   const cf = data.cost_framing;
@@ -299,6 +359,13 @@ function CostSection({ data }: AnalysisResultsProps) {
     { label: "Bailey Bill Eligible", value: cf.bailey_bill_eligible != null ? (cf.bailey_bill_eligible ? "Yes" : "No") : null },
   ];
 
+  // Add new cost engine fields if present
+  if (cf.construction_type) rows.unshift({ label: "Construction Type", value: cf.construction_type });
+  if (cf.base_hard_cost_range) rows.push({ label: "Base Hard Cost", value: cf.base_hard_cost_range });
+  if (cf.premium_adjusted_range) rows.push({ label: "Premium-Adjusted", value: cf.premium_adjusted_range });
+  if (cf.all_in_estimate_range) rows.push({ label: "All-In Estimate", value: cf.all_in_estimate_range });
+  if (cf.impact_fees_estimate) rows.push({ label: "Impact Fees", value: cf.impact_fees_estimate });
+
   return (
     <Section title="Cost Framing (Estimates)">
       <div className="space-y-4">
@@ -306,11 +373,25 @@ function CostSection({ data }: AnalysisResultsProps) {
           These are rough estimates for initial feasibility assessment. Not a substitute for professional cost analysis.
         </p>
 
+        {/* Applicable premiums */}
+        {cf.applicable_premiums && cf.applicable_premiums.length > 0 && (
+          <div>
+            <div className="text-xs text-navy/50 mb-2">Applicable Premiums</div>
+            <div className="flex flex-wrap gap-1.5">
+              {cf.applicable_premiums.map((p) => (
+                <span key={p} className="px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-medium">
+                  {p}
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="divide-y divide-gray-100">
           {rows.map((r) => (
             <div key={r.label} className="flex justify-between py-2.5 first:pt-0">
               <span className="text-sm text-navy/60">{r.label}</span>
-              <span className="text-sm text-navy font-medium">{r.value || "—"}</span>
+              <span className="text-sm text-navy font-medium">{r.value || "\u2014"}</span>
             </div>
           ))}
         </div>
@@ -321,12 +402,19 @@ function CostSection({ data }: AnalysisResultsProps) {
             <span className="text-lg font-bold text-navy">{cf.total_cost_range}</span>
           </div>
         )}
+
+        {/* CWS fee warning */}
+        {cf.cws_fee_warning && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg px-4 py-3 text-xs text-amber-800">
+            {cf.cws_fee_warning}
+          </div>
+        )}
       </div>
     </Section>
   );
 }
 
-/* ─── Footer ─── */
+/* --- Footer --- */
 
 function ReportFooter({ data }: AnalysisResultsProps) {
   const ts = new Date(data.metadata.generated_at).toLocaleString();
@@ -363,11 +451,19 @@ function ReportFooter({ data }: AnalysisResultsProps) {
   );
 }
 
-/* ─── Main component ─── */
+/* --- Main component --- */
 
 export default function AnalysisResults({ data }: AnalysisResultsProps) {
   return (
     <div className="space-y-6">
+      {/* Confidence badge — always shown */}
+      <div className="flex justify-center">
+        <ConfidenceBadge tier={data.confidence_tier} label={data.confidence_label} />
+      </div>
+
+      {/* Disclaimer callout — Tier 2 and 3 */}
+      {data.disclaimer && <DisclaimerCallout disclaimer={data.disclaimer} />}
+
       <EnvelopeSection data={data} />
       <ScenariosSection data={data} />
       <RiskMapSection data={data} />

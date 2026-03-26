@@ -80,5 +80,8 @@ class SolverOutput:
     envelope: DevelopmentEnvelope = field(default_factory=DevelopmentEnvelope)
     scenarios: List[ScenarioOutput] = field(default_factory=list)
     binding_constraints: List[BindingConstraint] = field(default_factory=list)
-    solver_mode: str = "full"
+    solver_mode: str = "full"  # "full", "partial", "ai_only"
     jurisdiction_engine: str = ""
+    warnings: List[str] = field(default_factory=list)
+    confidence: str = "high"  # "high", "moderate", "low"
+    ai_context: Optional[str] = None
