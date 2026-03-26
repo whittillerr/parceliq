@@ -5,17 +5,17 @@ interface StatusIndicatorProps {
 export default function StatusIndicator({ connected }: StatusIndicatorProps) {
   if (connected === null) {
     return (
-      <div className="flex items-center gap-2 text-sm text-gray-400">
-        <div className="w-2.5 h-2.5 rounded-full bg-gray-300 animate-pulse" />
-        Connecting...
+      <div className="flex items-center gap-2 text-xs text-muted">
+        <div className="w-2 h-2 rounded-full bg-gray-300 animate-pulse" />
+        <span className="hidden sm:inline">Connecting...</span>
       </div>
     );
   }
 
   return (
-    <div className={`flex items-center gap-2 text-sm ${connected ? "text-emerald-600" : "text-red-500"}`}>
-      <div className={`w-2.5 h-2.5 rounded-full ${connected ? "bg-emerald-500" : "bg-red-500"}`} />
-      {connected ? "Backend connected" : "Backend unreachable"}
+    <div className={`flex items-center gap-2 text-xs font-medium ${connected ? "text-success" : "text-danger"}`}>
+      <div className={`w-2 h-2 rounded-full ${connected ? "bg-success" : "bg-danger"}`} />
+      <span className="hidden sm:inline">{connected ? "Connected" : "Offline"}</span>
     </div>
   );
 }
