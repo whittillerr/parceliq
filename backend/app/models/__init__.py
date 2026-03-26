@@ -10,6 +10,7 @@ from app.models.analysis import (
     RiskLevel,
     RiskMap,
     Scenario,
+    ScenarioCommentary,
     Setbacks,
     UseType,
 )
@@ -26,6 +27,7 @@ __all__ = [
     "RiskLevel",
     "RiskMap",
     "Scenario",
+    "ScenarioCommentary",
     "Setbacks",
     "UseType",
 ]

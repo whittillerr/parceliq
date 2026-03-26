@@ -43,6 +43,11 @@ class RiskLevel(str, Enum):
 class AnalysisRequest(BaseModel):
     jurisdiction: Jurisdiction
     address: str
+    zoning_district: Optional[str] = None
+    height_district: Optional[str] = None
+    on_peninsula: Optional[bool] = None
+    flood_zone: Optional[str] = None
+    historic_overlay: Optional[str] = None
     lot_size_sf: Optional[float] = None
     use_types: Optional[List[UseType]] = None
     approximate_scale: Optional[str] = None
@@ -130,6 +135,12 @@ class CostFraming(BaseModel):
     all_in_estimate_range: Optional[str] = None
     impact_fees_estimate: Optional[str] = None
     cws_fee_warning: Optional[str] = None
+
+
+class ScenarioCommentary(BaseModel):
+    by_right: str = ""
+    optimized: str = ""
+    with_variance: str = ""
 
 
 class AnalysisMetadata(BaseModel):

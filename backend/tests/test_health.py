@@ -12,7 +12,7 @@ def test_health_check():
     assert data["product"] == "parceliq"
 
 
-def test_analyze_mock():
+def test_analyze_endpoint_returns_response():
     response = client.post("/api/analyze", json={
         "jurisdiction": "charleston",
         "address": "123 King St",
@@ -23,11 +23,8 @@ def test_analyze_mock():
     assert data["parcel"]["jurisdiction"] == "charleston"
     assert data["parcel"]["jurisdiction_display"] == "City of Charleston"
     assert len(data["scenarios"]) == 3
-    assert data["scenarios"][0]["name"] == "By-Right"
-    assert data["scenarios"][1]["name"] == "Optimized"
-    assert data["scenarios"][2]["name"] == "With Variance"
-    assert data["envelope"]["zoning_district"] == "SR-2"
-    assert data["metadata"]["solver_version"] == "0.1.0-mock"
+    assert data["confidence_tier"] == 1
+    assert data["confidence_label"] == "Verified Data"
 
 
 def test_analyze_with_optional_fields():
