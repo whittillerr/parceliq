@@ -1,18 +1,27 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import StatusIndicator from "./components/StatusIndicator";
 import AnalysisForm from "./components/AnalysisForm";
+import AnalysisResults from "./components/AnalysisResults";
 import { checkHealth } from "./api/client";
 import type { AnalysisResponse } from "./types/analysis";
 
 export default function App() {
   const [connected, setConnected] = useState<boolean | null>(null);
-  const [_result, setResult] = useState<AnalysisResponse | null>(null);
+  const [result, setResult] = useState<AnalysisResponse | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     checkHealth()
       .then(() => setConnected(true))
       .catch(() => setConnected(false));
   }, []);
+
+  function handleAnalysisComplete(response: AnalysisResponse) {
+    setResult(response);
+    setTimeout(() => {
+      resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  }
 
   return (
     <div className="min-h-screen bg-[#F7FAFC]">
@@ -33,14 +42,13 @@ export default function App() {
 
       {/* Main */}
       <main className="max-w-4xl mx-auto px-4 py-10 space-y-8">
-        <AnalysisForm onAnalysisComplete={(response) => setResult(response)} />
+        <AnalysisForm onAnalysisComplete={handleAnalysisComplete} />
 
-        {/* Results placeholder */}
-        {_result ? (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8 text-center text-navy/50">
-            Analysis results will appear here
+        {result && (
+          <div ref={resultsRef}>
+            <AnalysisResults data={result} />
           </div>
-        ) : null}
+        )}
       </main>
     </div>
   );
