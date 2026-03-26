@@ -13,8 +13,41 @@ def test_health_check():
 
 
 def test_analyze_mock():
-    response = client.post("/api/analyze", json={"parcel_id": "TMS-123-45-67-890"})
+    response = client.post("/api/analyze", json={
+        "jurisdiction": "charleston",
+        "address": "123 King St",
+    })
     assert response.status_code == 200
     data = response.json()
-    assert data["parcel_id"] == "TMS-123-45-67-890"
-    assert data["feasibility"] == "favorable"
+    assert data["parcel"]["address"] == "123 King St"
+    assert data["parcel"]["jurisdiction"] == "charleston"
+    assert data["parcel"]["jurisdiction_display"] == "City of Charleston"
+    assert len(data["scenarios"]) == 3
+    assert data["scenarios"][0]["name"] == "By-Right"
+    assert data["scenarios"][1]["name"] == "Optimized"
+    assert data["scenarios"][2]["name"] == "With Variance"
+    assert data["envelope"]["zoning_district"] == "SR-2"
+    assert data["metadata"]["solver_version"] == "0.1.0-mock"
+
+
+def test_analyze_with_optional_fields():
+    response = client.post("/api/analyze", json={
+        "jurisdiction": "mount_pleasant",
+        "address": "456 Coleman Blvd",
+        "lot_size_sf": 12000.0,
+        "use_types": ["residential", "mixed_use"],
+        "approximate_scale": "4 units",
+        "existing_conditions": "vacant lot",
+    })
+    assert response.status_code == 200
+    data = response.json()
+    assert data["parcel"]["lot_size_sf"] == 12000.0
+    assert data["parcel"]["jurisdiction_display"] == "Town of Mount Pleasant"
+
+
+def test_analyze_invalid_jurisdiction():
+    response = client.post("/api/analyze", json={
+        "jurisdiction": "imaginary_town",
+        "address": "123 Fake St",
+    })
+    assert response.status_code == 422
