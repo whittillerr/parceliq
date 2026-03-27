@@ -75,8 +75,8 @@ def solve(solver_input: SolverInput) -> SolverOutput:
     elif module.tier == 1 and not solver_input.zoning_district:
         # Tier 1 but no district — can't run solver
         lookup_hint = (
-            "charleston-sc.gov/GIS" if module.slug == "charleston"
-            else "mtpleasantgis.com"
+            "gis.charleston-sc.gov/interactive/zoning/" if module.slug == "charleston"
+            else "gis-tomp.hub.arcgis.com"
         )
         return SolverOutput(
             envelope=DevelopmentEnvelope(),

@@ -136,7 +136,7 @@ async def analyze_parcel(request: AnalysisRequest):
     # 2. Tier 1 requires zoning district (until GIS auto-resolve in Phase 4)
     if module.tier == 1 and not request.zoning_district:
         gis_hint = (
-            "Check your zoning at charleston-sc.gov/GIS"
+            "Check your zoning at gis.charleston-sc.gov/interactive/zoning/"
             if request.jurisdiction.value == "charleston"
             else "Check your zoning at the municipal GIS portal"
         )

@@ -126,7 +126,7 @@ def test_tier1_missing_zoning_returns_422():
     assert response.status_code == 422
     detail = response.json()["detail"]
     assert "Zoning district is required" in detail
-    assert "charleston-sc.gov/GIS" in detail
+    assert "gis.charleston-sc.gov" in detail
 
 
 def test_tier1_mt_pleasant_missing_zoning():

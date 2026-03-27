@@ -233,8 +233,8 @@ export default function AnalysisForm({ onAnalysisComplete, onLoadingChange }: An
                 Check your zoning at{" "}
                 <a
                   href={jurisdiction === "charleston"
-                    ? "https://charleston-sc.gov/GIS"
-                    : "https://www.tompsc.com/gis"}
+                    ? "https://gis.charleston-sc.gov/interactive/zoning/"
+                    : "https://gis-tomp.hub.arcgis.com/"}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-accent hover:underline"
